@@ -1,0 +1,722 @@
+# NEXORA AI
+
+# Authentication Implementation Guide
+
+Version: 1.0
+
+Status: Ready for Implementation
+
+---
+
+# 1. Objective
+
+This document defines the complete authentication architecture for the NEXORA AI platform.
+
+Authentication is the foundation of the entire application. Every protected resource, API, and business module depends on this implementation.
+
+The authentication module must provide:
+
+• Secure user registration
+
+• Secure login
+
+• JWT Authentication
+
+• Refresh Token Authentication
+
+• Role Based Access Control (RBAC)
+
+• Email Verification
+
+• Password Reset
+
+• Session Management
+
+• API Security
+
+• Account Status Management
+
+• Audit Logging
+
+The implementation should follow enterprise security standards and be scalable for future integrations such as OAuth2, Google Login, Microsoft Login, LinkedIn Login, and Multi-Factor Authentication.
+
+---
+
+# 2. Scope
+
+This module covers authentication for every user of the platform.
+
+Supported Users
+
+```
+Student
+
+Recruiter
+
+College
+
+Administrator
+```
+
+Every user authenticates using the same authentication system while receiving permissions according to their assigned role.
+
+---
+
+# 3. Authentication Architecture
+
+```
+                    Client Application
+
+                           │
+
+                           ▼
+
+                Authentication Controller
+
+                           │
+
+                           ▼
+
+               Authentication Service Layer
+
+                           │
+
+                           ▼
+
+          Spring Security AuthenticationManager
+
+                           │
+
+                           ▼
+
+                  UserDetailsService
+
+                           │
+
+                           ▼
+
+                    PostgreSQL Database
+
+                           │
+
+                           ▼
+
+                    JWT Token Generator
+
+                           │
+
+                           ▼
+
+                  Authenticated Response
+```
+
+The Authentication Controller should never communicate directly with the database.
+
+All requests must pass through the Service Layer.
+
+---
+
+# 4. Authentication Workflow
+
+## Registration
+
+```
+User
+
+↓
+
+Submit Registration Form
+
+↓
+
+Validate Input
+
+↓
+
+Check Existing Email
+
+↓
+
+Hash Password
+
+↓
+
+Create User
+
+↓
+
+Assign Role
+
+↓
+
+Generate Verification Token
+
+↓
+
+Store User
+
+↓
+
+Send Verification Email
+
+↓
+
+Registration Successful
+```
+
+---
+
+## Login
+
+```
+User
+
+↓
+
+Submit Credentials
+
+↓
+
+AuthenticationManager
+
+↓
+
+Verify Password
+
+↓
+
+Load User Details
+
+↓
+
+Generate JWT
+
+↓
+
+Generate Refresh Token
+
+↓
+
+Return Authentication Response
+```
+
+---
+
+## Protected API Access
+
+```
+HTTP Request
+
+↓
+
+JWT Filter
+
+↓
+
+Validate JWT
+
+↓
+
+Extract Username
+
+↓
+
+Load User
+
+↓
+
+Validate Token
+
+↓
+
+Security Context
+
+↓
+
+Execute Controller
+
+↓
+
+Return Response
+```
+
+---
+
+# 5. Security Principles
+
+Authentication must follow these principles.
+
+• Stateless Authentication
+
+• No Server Sessions
+
+• Password Encryption
+
+• HTTPS Only
+
+• Least Privilege Principle
+
+• Secure Headers
+
+• Input Validation
+
+• Secure Token Storage
+
+• Audit Logging
+
+• Protection Against Brute Force
+
+• Token Expiration
+
+• Refresh Token Rotation
+
+• Principle of Separation of Concerns
+
+---
+
+# 6. Authentication Technologies
+
+Backend
+
+```
+Java 21
+```
+
+Framework
+
+```
+Spring Boot 3.x
+```
+
+Authentication
+
+```
+Spring Security
+```
+
+Token
+
+```
+JWT
+```
+
+Password Encryption
+
+```
+BCryptPasswordEncoder
+```
+
+Database
+
+```
+PostgreSQL
+```
+
+ORM
+
+```
+Spring Data JPA
+```
+
+Migration
+
+```
+Flyway
+```
+
+Validation
+
+```
+Jakarta Validation
+```
+
+JSON
+
+```
+Jackson
+```
+
+Logging
+
+```
+SLF4J
+```
+
+---
+
+# 7. Package Structure
+
+```
+com.nexora
+
+auth
+
+├── controller
+├── dto
+│   ├── request
+│   └── response
+├── entity
+├── repository
+├── service
+├── service
+│     └── impl
+├── mapper
+├── validator
+├── security
+├── jwt
+├── token
+├── email
+└── util
+```
+
+Each package has a single responsibility.
+
+Business logic should never be placed inside controllers.
+
+---
+
+# 8. Module Responsibilities
+
+Authentication Controller
+
+Responsible for exposing REST APIs.
+
+Authentication Service
+
+Responsible for authentication logic.
+
+JWT Service
+
+Responsible for creating and validating JWT tokens.
+
+UserDetailsService
+
+Responsible for loading users from the database.
+
+Repository Layer
+
+Responsible for database operations.
+
+Security Package
+
+Responsible for securing every endpoint.
+
+---
+
+# 9. Authentication Features
+
+The module must support
+
+```
+User Registration
+
+Secure Login
+
+Logout
+
+Refresh Token
+
+JWT Validation
+
+Email Verification
+
+Forgot Password
+
+Reset Password
+
+Change Password
+
+Role Validation
+
+Account Lock
+
+Account Disable
+
+Audit Logging
+
+Remember Me
+
+Token Revocation
+```
+
+---
+
+# 10. User Roles
+
+The platform supports four primary roles.
+
+```
+ROLE_STUDENT
+
+ROLE_RECRUITER
+
+ROLE_COLLEGE
+
+ROLE_ADMIN
+```
+
+Each user owns exactly one primary role.
+
+Future releases may support multiple roles.
+
+---
+
+# 11. Account Status
+
+Every account should contain a status field.
+
+Supported values
+
+```
+ACTIVE
+
+PENDING_VERIFICATION
+
+LOCKED
+
+DISABLED
+
+SUSPENDED
+```
+
+The authentication system must verify account status before allowing login.
+
+---
+
+# 12. Authentication Lifecycle
+
+```
+Register
+
+↓
+
+Verify Email
+
+↓
+
+Activate Account
+
+↓
+
+Login
+
+↓
+
+Generate JWT
+
+↓
+
+Access Protected APIs
+
+↓
+
+Refresh Token
+
+↓
+
+Logout
+
+↓
+
+Invalidate Refresh Token
+```
+
+---
+
+# 13. JWT Strategy
+
+Use two different tokens.
+
+Access Token
+
+```
+15 Minutes
+```
+
+Refresh Token
+
+```
+30 Days
+```
+
+JWT should include
+
+```
+User ID
+
+Email
+
+Role
+
+Issued Time
+
+Expiration Time
+
+Issuer
+```
+
+Sensitive information must never be stored inside JWT payloads.
+
+---
+
+# 14. Password Policy
+
+Minimum Length
+
+```
+8 Characters
+```
+
+Recommended Length
+
+```
+12+ Characters
+```
+
+Requirements
+
+```
+Uppercase
+
+Lowercase
+
+Number
+
+Special Character
+```
+
+Example
+
+```
+Nexora@2026
+```
+
+Passwords must always be encrypted using BCrypt.
+
+---
+
+# 15. Password Encryption
+
+Use
+
+```
+BCryptPasswordEncoder
+```
+
+Never
+
+```
+MD5
+
+SHA1
+
+Plain Text
+```
+
+Passwords should never be reversible.
+
+---
+
+# 16. Email Verification
+
+Every newly registered account remains inactive until email verification succeeds.
+
+Verification process
+
+```
+Register
+
+↓
+
+Generate Verification Token
+
+↓
+
+Send Email
+
+↓
+
+User Clicks Link
+
+↓
+
+Verify Token
+
+↓
+
+Activate Account
+```
+
+---
+
+# 17. Refresh Token Strategy
+
+Refresh tokens should
+
+• Be stored securely
+
+• Be revocable
+
+• Have expiry time
+
+• Rotate after usage
+
+• Be removed after logout
+
+---
+
+# 18. Coding Standards
+
+Follow
+
+```
+SOLID Principles
+
+Clean Architecture
+
+Constructor Injection
+
+DTO Pattern
+
+Repository Pattern
+
+Service Layer Pattern
+
+ResponseEntity
+
+Lombok
+```
+
+Business logic must never be written inside controllers.
+
+---
+
+# 19. Initial Git Commit
+
+Commit message
+
+```
+feat(auth): initialize authentication architecture
+```
+
+---
+
+# 20. Next Section
+
+The next section will implement
+
+• Database Design
+
+• User Entity
+
+• Role Entity
+
+• Refresh Token Entity
+
+• Email Verification Entity
+
+• Repository Layer
+
+• DTO Design
+
+These sections will define the complete persistence layer for Authentication.
