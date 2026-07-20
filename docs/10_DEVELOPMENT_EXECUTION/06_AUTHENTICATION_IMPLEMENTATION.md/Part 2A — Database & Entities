@@ -1,0 +1,556 @@
+---
+
+# 21. Authentication Database Design
+
+Authentication is the foundation of every secured operation inside NEXORA AI.
+
+The database must support:
+
+- User Registration
+- Login
+- JWT Authentication
+- Refresh Tokens
+- Email Verification
+- Password Reset
+- Role Based Access Control
+- Account Status Management
+- Audit Tracking
+
+Authentication should remain independent from Student, Recruiter, Company, and College modules.
+
+---
+
+# 22. Authentication Database Schema
+
+Authentication consists of the following tables.
+
+```
+users
+
+roles
+
+refresh_tokens
+
+email_verification_tokens
+
+password_reset_tokens
+```
+
+Future versions may include
+
+```
+oauth_accounts
+
+login_history
+
+user_sessions
+
+failed_login_attempts
+
+devices
+```
+
+---
+
+# 23. Entity Relationship Diagram
+
+```
+                 +-----------+
+                 |   Roles   |
+                 +-----------+
+                       |
+                       |
+                 role_id (FK)
+                       |
+                       ▼
+                +-------------+
+                |    Users    |
+                +-------------+
+                  |     |     |
+                  |     |     |
+                  |     |     |
+                  ▼     ▼     ▼
+
+      +-----------------------+
+      | Refresh Tokens        |
+      +-----------------------+
+
+      +-----------------------+
+      | Email Verification    |
+      +-----------------------+
+
+      +-----------------------+
+      | Password Reset Token  |
+      +-----------------------+
+```
+
+Each User can own
+
+- Multiple Refresh Tokens
+- One Active Verification Token
+- Multiple Password Reset Requests
+
+---
+
+# 24. User Entity
+
+Purpose
+
+Represents every authenticated account inside the platform.
+
+The User entity is the parent entity of
+
+- Student
+- Recruiter
+- College
+- Administrator
+
+No business-specific information should be stored here.
+
+---
+
+# 25. User Table
+
+```
+users
+```
+
+Columns
+
+```
+id
+
+first_name
+
+last_name
+
+email
+
+phone
+
+password
+
+role_id
+
+status
+
+email_verified
+
+profile_picture
+
+last_login
+
+created_at
+
+updated_at
+```
+
+---
+
+# 26. User Entity Relationships
+
+```
+User
+
+↓
+
+Role
+
+↓
+
+Student
+
+↓
+
+Recruiter
+
+↓
+
+College
+```
+
+Authentication owns the User.
+
+Business modules reference the User.
+
+---
+
+# 27. User Entity Rules
+
+Email
+
+```
+Unique
+```
+
+Phone
+
+```
+Unique
+```
+
+Password
+
+```
+Encrypted using BCrypt
+```
+
+Status
+
+```
+Mandatory
+```
+
+Role
+
+```
+Mandatory
+```
+
+Created Date
+
+```
+Automatically Generated
+```
+
+Updated Date
+
+```
+Automatically Updated
+```
+
+---
+
+# 28. User Entity Validation
+
+First Name
+
+```
+Required
+
+Maximum 50 Characters
+```
+
+Last Name
+
+```
+Required
+
+Maximum 50 Characters
+```
+
+Email
+
+```
+Required
+
+Valid Email
+
+Unique
+```
+
+Phone
+
+```
+10-15 Digits
+
+Unique
+```
+
+Password
+
+```
+Minimum 8 Characters
+
+Uppercase
+
+Lowercase
+
+Number
+
+Special Character
+```
+
+---
+
+# 29. Role Entity
+
+Purpose
+
+Stores application roles.
+
+Table
+
+```
+roles
+```
+
+Columns
+
+```
+id
+
+name
+
+description
+
+created_at
+```
+
+---
+
+# 30. Default Roles
+
+```
+ROLE_STUDENT
+
+ROLE_RECRUITER
+
+ROLE_COLLEGE
+
+ROLE_ADMIN
+```
+
+Roles should be inserted using Flyway.
+
+Never create roles manually in production.
+
+---
+
+# 31. User → Role Relationship
+
+```
+One Role
+
+↓
+
+Many Users
+```
+
+Example
+
+```
+ROLE_STUDENT
+
+↓
+
+10,000 Users
+```
+
+---
+
+# 32. Role Permissions
+
+ROLE_STUDENT
+
+Can
+
+```
+Manage Profile
+
+Upload Resume
+
+Apply Jobs
+
+View AI Analysis
+```
+
+ROLE_RECRUITER
+
+Can
+
+```
+Create Jobs
+
+Manage Applications
+
+Search Candidates
+
+Schedule Interviews
+```
+
+ROLE_COLLEGE
+
+Can
+
+```
+Manage Students
+
+Upload Placements
+
+Generate Reports
+```
+
+ROLE_ADMIN
+
+Can
+
+```
+Full System Access
+```
+
+---
+
+# 33. Account Status Enum
+
+Possible values
+
+```
+ACTIVE
+
+PENDING_VERIFICATION
+
+LOCKED
+
+DISABLED
+
+SUSPENDED
+```
+
+Every login must validate the account status before authentication succeeds.
+
+---
+
+# 34. Email Verification Flag
+
+Column
+
+```
+email_verified
+```
+
+Values
+
+```
+true
+
+false
+```
+
+New users
+
+```
+false
+```
+
+After verification
+
+```
+true
+```
+
+---
+
+# 35. Audit Columns
+
+Every authentication table should contain
+
+```
+created_at
+
+updated_at
+```
+
+Future versions may include
+
+```
+created_by
+
+updated_by
+```
+
+for administrative auditing.
+
+---
+
+# 36. Database Best Practices
+
+Always use
+
+```
+UUID or BIGSERIAL IDs
+
+Foreign Keys
+
+Indexes
+
+Unique Constraints
+
+NOT NULL Constraints
+```
+
+Avoid
+
+```
+Duplicate Data
+
+Nullable Authentication Fields
+
+Plain Text Passwords
+```
+
+---
+
+# 37. Flyway Migration Order
+
+```
+V1__initial_schema.sql
+
+↓
+
+V2__roles.sql
+
+↓
+
+V3__users.sql
+
+↓
+
+V4__refresh_tokens.sql
+
+↓
+
+V5__email_verification.sql
+
+↓
+
+V6__password_reset.sql
+```
+
+Every migration must be immutable after deployment.
+
+---
+
+# 38. Definition of Done
+
+✔ Authentication schema designed
+
+✔ User entity finalized
+
+✔ Role entity finalized
+
+✔ Relationships documented
+
+✔ Validation rules defined
+
+✔ Migration order finalized
+
+---
+
+# 39. Next Section
+
+Next, implement
+
+```
+Refresh Token Entity
+
+Email Verification Entity
+
+Password Reset Entity
+
+Repository Layer
+
+DTO Layer
+
+Validation Layer
+```
