@@ -1,0 +1,421 @@
+NEXORA AI
+Authentication Foundation
+
+Version: 1.0
+Status: Ready for Implementation
+
+1. Objective
+
+This document defines the authentication architecture for the NEXORA AI backend.
+
+The authentication system must provide:
+
+Secure login
+JWT-based authentication
+Role-based authorization
+Refresh token support
+Password encryption
+Email verification
+Password reset
+Session management
+API security
+Scalability for future OAuth integration
+
+At the end of this phase, every protected API should require valid authentication.
+
+2. Authentication Architecture
+Client
+
+↓
+
+Login Request
+
+↓
+
+Authentication Controller
+
+↓
+
+Authentication Service
+
+↓
+
+Spring Security
+
+↓
+
+JWT Service
+
+↓
+
+Database
+
+↓
+
+JWT Access Token
+
+↓
+
+Protected APIs
+3. Authentication Flow
+User Registration
+User submits registration
+
+↓
+
+Validate request
+
+↓
+
+Check duplicate email
+
+↓
+
+Hash password
+
+↓
+
+Create user
+
+↓
+
+Assign default role
+
+↓
+
+Generate verification token
+
+↓
+
+Send verification email
+
+↓
+
+Registration successful
+User Login
+User enters credentials
+
+↓
+
+Validate credentials
+
+↓
+
+Generate JWT
+
+↓
+
+Generate Refresh Token
+
+↓
+
+Return Authentication Response
+Protected API
+Request
+
+↓
+
+JWT Filter
+
+↓
+
+Validate Token
+
+↓
+
+Load User
+
+↓
+
+Set Security Context
+
+↓
+
+Execute Controller
+4. User Roles
+
+The system will support the following roles:
+
+ROLE_STUDENT
+
+ROLE_RECRUITER
+
+ROLE_COLLEGE
+
+ROLE_ADMIN
+
+Each user must have exactly one primary role during registration.
+
+Future versions may support multiple roles.
+
+5. JWT Strategy
+
+Use:
+
+Access Token
+
+Short lifetime
+Refresh Token
+
+Long lifetime
+
+Recommended durations:
+
+Access Token
+
+15 Minutes
+
+Refresh Token
+
+30 Days
+6. Password Security
+
+Passwords must never be stored in plain text.
+
+Use:
+
+BCryptPasswordEncoder
+
+Requirements:
+
+Minimum 8 characters
+Uppercase letter
+Lowercase letter
+Number
+Special character
+
+Example:
+
+Nexora@2026
+7. Authentication Package Structure
+auth/
+
+controller/
+
+service/
+
+service/impl/
+
+repository/
+
+entity/
+
+dto/
+
+mapper/
+
+security/
+
+jwt/
+
+token/
+
+validator/
+8. Core Classes
+
+Create the following classes:
+
+AuthenticationController
+
+AuthenticationService
+
+AuthenticationServiceImpl
+
+JwtService
+
+JwtAuthenticationFilter
+
+AuthenticationProvider
+
+AuthenticationManager
+
+CustomUserDetailsService
+
+PasswordEncoderConfig
+
+UserPrincipal
+9. DTOs
+
+Create:
+
+RegisterRequest
+
+LoginRequest
+
+AuthenticationResponse
+
+RefreshTokenRequest
+
+ForgotPasswordRequest
+
+ResetPasswordRequest
+
+VerifyEmailRequest
+10. Entities
+
+Create:
+
+User
+
+Role
+
+RefreshToken
+
+EmailVerificationToken
+
+PasswordResetToken
+11. User Entity Fields
+id
+
+firstName
+
+lastName
+
+email
+
+password
+
+phone
+
+role
+
+accountStatus
+
+emailVerified
+
+createdAt
+
+updatedAt
+12. Account Status
+
+Possible values:
+
+ACTIVE
+
+PENDING_VERIFICATION
+
+LOCKED
+
+DISABLED
+13. Public APIs
+POST /api/v1/auth/register
+
+POST /api/v1/auth/login
+
+POST /api/v1/auth/refresh
+
+POST /api/v1/auth/logout
+
+POST /api/v1/auth/forgot-password
+
+POST /api/v1/auth/reset-password
+
+GET /api/v1/auth/verify-email
+14. Protected APIs
+
+Require JWT authentication.
+
+Examples:
+
+/api/v1/student/**
+
+/api/v1/recruiter/**
+
+/api/v1/company/**
+
+/api/v1/dashboard/**
+15. Email Verification Flow
+Register User
+
+↓
+
+Generate Verification Token
+
+↓
+
+Send Email
+
+↓
+
+User Clicks Link
+
+↓
+
+Validate Token
+
+↓
+
+Activate Account
+16. Refresh Token Flow
+Access Token Expires
+
+↓
+
+Client Sends Refresh Token
+
+↓
+
+Validate Refresh Token
+
+↓
+
+Generate New Access Token
+
+↓
+
+Return New JWT
+17. Exception Handling
+
+Authentication module should handle:
+
+Invalid Credentials
+
+Expired JWT
+
+Malformed JWT
+
+Missing JWT
+
+User Not Found
+
+Email Already Exists
+
+Email Not Verified
+
+Invalid Refresh Token
+
+Expired Refresh Token
+
+Weak Password
+18. Security Best Practices
+Never expose passwords.
+Store only encrypted passwords.
+Use HTTPS in production.
+Validate every JWT request.
+Set appropriate token expiration.
+Rotate refresh tokens after use.
+Revoke tokens on logout.
+Prevent brute-force attacks using rate limiting.
+Validate email before activating accounts.
+
+
+19. Definition of Done
+
+The authentication foundation is complete when:
+
+Registration API is available.
+Login API returns valid JWT.
+Refresh token flow works.
+Passwords are encrypted.
+Email verification is functional.
+Protected APIs reject unauthorized requests.
+Role-based authentication is configured.
+Security configuration passes all tests.
+20. Deliverables
+JWT authentication implemented.
+Refresh token support.
+User authentication flow completed.
+Spring Security configured.
+Role-based authorization enabled.
+Authentication APIs documented.
+Ready for Student Module implementation.
